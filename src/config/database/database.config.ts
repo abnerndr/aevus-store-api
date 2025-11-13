@@ -13,7 +13,7 @@ import { entities } from '../../shared/entities';
         entities: entities,
         logging: ['query', 'error'],
         synchronize: CONFIG.NODE_ENV.toLowerCase().includes('development'),
-        ssl: !CONFIG.NODE_ENV.toLowerCase().includes('development')
+        ssl: CONFIG.NODE_ENV.toLowerCase().includes('production')
           ? { rejectUnauthorized: false }
           : false,
       }),

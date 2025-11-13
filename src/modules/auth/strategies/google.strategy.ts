@@ -1,8 +1,7 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-google-oauth20';
+import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { CONFIG } from 'src/shared/constants/env';
-import { OAuthUserInfo } from 'src/shared/interfaces/oauth.token';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -15,11 +14,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(profile: OAuthUserInfo): Promise<OAuthUserInfo> {
-    const googleUser = await this.googleAuthService.verifyIdToken(profile.id);
-    if (!googleUser.email_verified) {
-      throw new UnauthorizedException('Email Google não verificado');
-    }
-    return googleUser;
+  async validate(profile: any, done: VerifyCallback): Promise<any> {
+    const { name, emails, photos, id } = profile;
+
+    const user = {
+      email: emails[0].value,
+      name: `${name.givenName} ${name.familyName}`,
+      avatar: photos[0].value,
+      googleId: id,
+    };
+
+    done(null, user);
   }
 }

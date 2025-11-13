@@ -131,13 +131,17 @@ export async function seedRolesAndPermissions(dataSource: DataSource) {
     {
       name: 'user',
       description: 'Regular User',
-      permissions: savedPermissions.filter((p) => p.resource === 'user' && p.action === 'read'),
+      permissions: savedPermissions.filter(
+        (p) => p.resource === String(Resource.USER) && p.action === String(Action.READ),
+      ),
     },
     {
       name: 'moderator',
       description: 'Content Moderator',
       permissions: savedPermissions.filter(
-        (p) => p.resource === 'user' && ['read', 'update'].includes(p.action),
+        (p) =>
+          p.resource === String(Resource.USER) &&
+          [String(Action.READ), String(Action.UPDATE)].includes(p.action),
       ),
     },
   ];

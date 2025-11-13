@@ -1,6 +1,7 @@
 import { createId } from '@paralleldrive/cuid2';
 import {
   BaseEntity,
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -17,8 +18,15 @@ export class User extends BaseEntity {
   @PrimaryColumn('uuid')
   id = uuid();
 
-  @Column({ unique: true, nullable: false, type: 'varchar', default: () => createId() })
+  @Column({ unique: true, nullable: false, type: 'varchar' })
   code: string;
+
+  @BeforeInsert()
+  generateCode() {
+    if (!this.code) {
+      this.code = createId();
+    }
+  }
 
   @Column({ unique: true })
   email: string;
