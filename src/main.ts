@@ -25,7 +25,7 @@ async function bootstrap() {
   await fastifyInstance.register(multipart, FilesConfig.multipart());
   await fastifyInstance.register(cors, CorsConfig.cors());
   const swaggerConfig = new SwaggerConfig();
-  swaggerConfig.initialize(app, '/docs');
+  swaggerConfig.setup(app, '/docs');
   await app.listen(CONFIG.PORT, '0.0.0.0');
 }
 void bootstrap();

@@ -1,11 +1,13 @@
 import type { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule, type OpenAPIObject } from '@nestjs/swagger';
 import { CONFIG } from 'src/shared/constants/env';
+import { ScalarConfig } from './scalar.config';
 
 export class SwaggerConfig {
-  public initialize(app: INestApplication, path: string): void {
+  public setup(app: INestApplication, path: string): void {
     const document = this.createDocument(app);
     SwaggerModule.setup(path, app, document);
+    ScalarConfig.setup(path, app, document);
   }
 
   private createConfig(): Omit<OpenAPIObject, 'paths'> {
