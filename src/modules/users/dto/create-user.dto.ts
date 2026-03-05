@@ -37,14 +37,6 @@ export class CreateUserDTO {
   avatar?: string;
 
   @ApiPropertyOptional({
-    description: 'Google ID para login social',
-    example: '1234567890',
-  })
-  @IsOptional()
-  @IsString()
-  googleId?: string;
-
-  @ApiPropertyOptional({
     description: 'Array de IDs de roles do usuário',
     example: ['role-uuid-1', 'role-uuid-2'],
   })

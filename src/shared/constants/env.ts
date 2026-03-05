@@ -20,11 +20,6 @@ export const CONFIG: AppConfigProps = {
     FROM: process.env.SENDGRID_FROM || '',
     NAME: process.env.SENDGRID_FROM_NAME || '',
   },
-  GOOGLE_OAUTH: {
-    CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
-    CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
-    CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || '',
-  },
   JWT: {
     SECRET: process.env.JWT_SECRET || '',
     REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || '',
@@ -34,5 +29,17 @@ export const CONFIG: AppConfigProps = {
   ADMIN: {
     EMAIL: process.env.ADMIN_EMAIL || '',
     PASSWORD: process.env.ADMIN_PASSWORD || '',
+  },
+  CLOUDFLARE_R2: {
+    ENDPOINT: process.env.CLOUDFLARE_R2_ENDPOINT || '',
+    ACCESS_KEY: process.env.CLOUDFLARE_R2_ACCESS_KEY || '',
+    SECRET_KEY: process.env.CLOUDFLARE_R2_SECRET_KEY || '',
+    BUCKET_NAME: process.env.CLOUDFLARE_R2_BUCKET_NAME || '',
+    PUBLIC_URL: process.env.CLOUDFLARE_R2_PUBLIC_URL || '',
+  },
+  STRIPE: {
+    SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
+    WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
+    API_VERSION: process.env.STRIPE_API_VERSION || '',
   },
 };

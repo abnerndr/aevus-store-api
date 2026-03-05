@@ -4,147 +4,167 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { createId } from '@paralleldrive/cuid2';
+import { v7 as uuidv7 } from 'uuid';
 import * as bcrypt from 'bcryptjs';
-import { FindManyOptions, In, Like, Repository } from 'typeorm';
+import { PrismaService } from '../../prisma/prisma.service';
 import { Role } from '../../shared/entities/role.entity';
 import { User } from '../../shared/entities/user.entity';
 import { ChangePasswordDTO } from './dto/change-password.dto copy';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { QueryUserDTO } from './dto/query-user.dto';
-import { UserListResponseDTO } from './dto/response-user.dto';
+import { UserListResponseDTO, UserResponseDTO } from './dto/response-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
+
+const USER_WITH_ROLES = {
+  roles: {
+    include: {
+      permissions: true,
+    },
+  },
+};
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
-    @InjectRepository(Role)
-    private rolesRepository: Repository<Role>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(userData: Partial<User>): Promise<User> {
-    const user = this.usersRepository.create(userData);
-    return this.usersRepository.save(user);
+    const { roles, ...rest } = userData;
+
+    const created = await this.prisma.user.create({
+      data: {
+        id: uuidv7(),
+        code: createId(),
+        email: rest.email!,
+        password: rest.password ?? null,
+        name: rest.name ?? null,
+        avatar: rest.avatar ?? null,
+        isVerified: rest.isVerified ?? false,
+        verificationToken: rest.verificationToken ?? null,
+        resetPasswordToken: rest.resetPasswordToken ?? null,
+        resetPasswordExpires: rest.resetPasswordExpires ?? null,
+        magicLinkToken: rest.magicLinkToken ?? null,
+        magicLinkExpires: rest.magicLinkExpires ?? null,
+        refreshToken: rest.refreshToken ?? null,
+        ...(roles && roles.length > 0
+          ? { roles: { connect: roles.map((r) => ({ id: r.id })) } }
+          : {}),
+      },
+      include: USER_WITH_ROLES,
+    });
+
+    return created as unknown as User;
   }
 
   async validUser(email: string): Promise<boolean> {
-    const user = await this.usersRepository.findOne({
-      where: { email },
-    });
+    const user = await this.prisma.user.findUnique({ where: { email } });
     return !!user;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+    const user = await this.prisma.user.findUnique({
       where: { email },
-      relations: ['roles', 'roles.permissions'],
+      include: USER_WITH_ROLES,
     });
+    return user as unknown as User | null;
   }
 
   async findByIdWithRoles(id: string): Promise<User | null> {
-    const user = await this.usersRepository.findOne({
+    const user = await this.prisma.user.findUnique({
       where: { id },
-      relations: ['roles', 'roles.permissions'],
+      include: USER_WITH_ROLES,
     });
-
-    return user;
+    return user as unknown as User | null;
   }
 
   async findByVerificationToken(token: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+    const user = await this.prisma.user.findFirst({
       where: { verificationToken: token },
     });
+    return user as unknown as User | null;
   }
 
   async findByResetToken(token: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+    const user = await this.prisma.user.findFirst({
       where: { resetPasswordToken: token },
     });
+    return user as unknown as User | null;
   }
 
   async findByMagicLinkToken(token: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+    const user = await this.prisma.user.findFirst({
       where: { magicLinkToken: token },
     });
+    return user as unknown as User | null;
   }
 
   async findByRefreshToken(token: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+    const user = await this.prisma.user.findFirst({
       where: { refreshToken: token },
-      relations: ['roles', 'roles.permissions'],
+      include: USER_WITH_ROLES,
     });
+    return user as unknown as User | null;
   }
 
   async update(id: string, updateData: Partial<User>): Promise<User> {
-    const user = await this.findByIdWithRoles(id);
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+    const { roles, ...rest } = updateData;
+
+    const data: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(rest)) {
+      if (value !== undefined) {
+        data[key] = value;
+      } else {
+        data[key] = null;
+      }
     }
 
-    // Handle many-to-many relationships separately
-    const { roles, ...simpleUpdateData } = updateData;
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: {
+        ...data,
+        ...(roles !== undefined
+          ? { roles: { set: roles.map((r: Role) => ({ id: r.id })) } }
+          : {}),
+      },
+      include: USER_WITH_ROLES,
+    });
 
-    // Update simple fields first
-    if (Object.keys(simpleUpdateData).length > 0) {
-      await this.usersRepository.update(id, simpleUpdateData);
-    }
-
-    // Handle roles relationship if provided
-    if (roles !== undefined) {
-      user.roles = roles;
-      await this.usersRepository.save(user);
-    }
-
-    // Return updated user
-    const updatedUser = await this.findByIdWithRoles(id);
-    if (!updatedUser) {
-      throw new NotFoundException(`User with id ${id} not found`);
-    }
-    return updatedUser;
+    return updated as unknown as User;
   }
 
   async createUser(createUserDto: CreateUserDTO): Promise<User> {
-    // Verificar se email já existe
     const existingUser = await this.findByEmail(createUserDto.email);
     if (existingUser) {
       throw new ConflictException('Email já está em uso');
     }
 
-    // Hash da senha se fornecida
     let hashedPassword: string | undefined;
     if (createUserDto.password) {
       hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     }
 
-    // Criar usuário
     const userData: Partial<User> = {
       email: createUserDto.email,
       password: hashedPassword,
       name: createUserDto.name,
       avatar: createUserDto.avatar,
-      googleId: createUserDto.googleId,
     };
 
-    // Adicionar roles se fornecidas
     if (createUserDto.roleIds && createUserDto.roleIds.length > 0) {
       const roles = await this.findRolesByIds(createUserDto.roleIds);
       userData.roles = roles;
     }
 
-    const user = this.usersRepository.create(userData);
-    return this.usersRepository.save(user);
+    return this.create(userData);
   }
 
   async updateUser(id: string, updateUserDto: UpdateUserDTO): Promise<User> {
-    // Verificar se usuário existe
     const existingUser = await this.findByIdWithRoles(id);
     if (!existingUser) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    // Verificar se novo email já está em uso
     if (updateUserDto.email && updateUserDto.email !== existingUser.email) {
       const userWithEmail = await this.findByEmail(updateUserDto.email);
       if (userWithEmail) {
@@ -159,7 +179,6 @@ export class UsersService {
       isVerified: updateUserDto.isVerified,
     };
 
-    // Atualizar roles se fornecidas
     if (updateUserDto.roleIds) {
       const roles = await this.findRolesByIds(updateUserDto.roleIds);
       updateData.roles = roles;
@@ -178,31 +197,29 @@ export class UsersService {
       sortOrder = 'DESC',
     } = queryDto;
 
-    const queryOptions: FindManyOptions<User> = {
-      relations: ['roles'],
-      order: { [sortBy]: sortOrder },
-      skip: (page - 1) * limit,
-      take: limit,
-    };
-
-    // Filtros
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (search) {
-      where.name = Like(`%${search}%`);
-      // Ou usar uma condição mais complexa para buscar em nome e email
+      where.name = { contains: search, mode: 'insensitive' };
     }
 
     if (isVerified !== undefined) {
       where.isVerified = isVerified;
     }
 
-    queryOptions.where = where;
-
-    const [users, total] = await this.usersRepository.findAndCount(queryOptions);
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        include: { roles: true },
+        orderBy: { [sortBy]: sortOrder.toLowerCase() },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
 
     return {
-      data: users,
+      data: users as unknown as UserResponseDTO[],
       total,
       page,
       limit,
@@ -219,8 +236,8 @@ export class UsersService {
   }
 
   async deleteUser(id: string): Promise<void> {
-    const user = await this.findById(id);
-    await this.usersRepository.remove(user);
+    await this.findById(id);
+    await this.prisma.user.delete({ where: { id } });
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDTO): Promise<void> {
@@ -230,7 +247,6 @@ export class UsersService {
       throw new BadRequestException('Usuário não possui senha definida');
     }
 
-    // Verificar senha atual
     const isCurrentPasswordValid = await bcrypt.compare(
       changePasswordDto.currentPassword,
       user.password,
@@ -239,48 +255,42 @@ export class UsersService {
       throw new BadRequestException('Senha atual incorreta');
     }
 
-    // Hash da nova senha
     const hashedNewPassword = await bcrypt.hash(changePasswordDto.newPassword, 10);
-
-    // Atualizar senha
-    await this.update(userId, { password: hashedNewPassword });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedNewPassword },
+    });
   }
 
   async setPassword(userId: string, newPassword: string): Promise<void> {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await this.update(userId, { password: hashedPassword });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
   }
 
   async verifyUser(userId: string): Promise<User> {
-    return this.update(userId, {
-      isVerified: true,
-      verificationToken: undefined,
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isVerified: true, verificationToken: null },
+      include: USER_WITH_ROLES,
     });
+    return updated as unknown as User;
   }
 
   async getUserStats(): Promise<{
     total: number;
     verified: number;
     unverified: number;
-    withGoogle: number;
   }> {
-    const total = await this.usersRepository.count();
-    const verified = await this.usersRepository.count({
-      where: { isVerified: true },
-    });
-    const unverified = await this.usersRepository.count({
-      where: { isVerified: false },
-    });
-    const withGoogle = await this.usersRepository.count({
-      where: { googleId: Like('%') },
-    });
+    const [total, verified, unverified] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.user.count({ where: { isVerified: true } }),
+      this.prisma.user.count({ where: { isVerified: false } }),
+    ]);
 
-    return {
-      total,
-      verified,
-      unverified,
-      withGoogle,
-    };
+    return { total, verified, unverified };
   }
 
   async updateMagicLinkToken(
@@ -288,27 +298,29 @@ export class UsersService {
     magicLinkToken: string | undefined,
     magicLinkExpires: Date | undefined,
   ): Promise<void> {
-    await this.usersRepository.update(userId, {
-      magicLinkToken,
-      magicLinkExpires,
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        magicLinkToken: magicLinkToken ?? null,
+        magicLinkExpires: magicLinkExpires ?? null,
+      },
     });
   }
 
-  // Método auxiliar para buscar roles por IDs
   private async findRolesByIds(roleIds: string[]): Promise<Role[]> {
     if (!roleIds || roleIds.length === 0) {
       return [];
     }
 
-    const roles = await this.rolesRepository.find({
-      where: { id: In(roleIds) },
-      relations: ['permissions'],
+    const roles = await this.prisma.role.findMany({
+      where: { id: { in: roleIds } },
+      include: { permissions: true },
     });
 
     if (roles.length !== roleIds.length) {
       throw new NotFoundException('Uma ou mais roles não foram encontradas');
     }
 
-    return roles;
+    return roles as unknown as Role[];
   }
 }

@@ -113,7 +113,6 @@ export class UsersController {
         total: { type: 'number' },
         verified: { type: 'number' },
         unverified: { type: 'number' },
-        withGoogle: { type: 'number' },
       },
     },
   })

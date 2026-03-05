@@ -7,21 +7,16 @@ export type AppConfigProps = {
   CORS_ORIGIN: string;
   DATABASE_URL: string;
   MAIL: MailConfig;
-  GOOGLE_OAUTH: GoogleOAuthConfig;
   JWT: JWTConfig;
   ADMIN: AdminConfig;
+  CLOUDFLARE_R2: CloudflareR2Config;
+  STRIPE: StripeConfig;
 };
 
 type MailConfig = {
   API_KEY: string;
   FROM: string;
   NAME: string;
-};
-
-type GoogleOAuthConfig = {
-  CLIENT_ID: string;
-  CLIENT_SECRET: string;
-  CALLBACK_URL: string;
 };
 
 type JWTConfig = {
@@ -34,4 +29,18 @@ type JWTConfig = {
 type AdminConfig = {
   EMAIL: string;
   PASSWORD: string;
+};
+
+type CloudflareR2Config = {
+  ENDPOINT: string;
+  ACCESS_KEY: string;
+  SECRET_KEY: string;
+  BUCKET_NAME: string;
+  PUBLIC_URL: string;
+};
+
+type StripeConfig = {
+  SECRET_KEY: string;
+  WEBHOOK_SECRET: string;
+  API_VERSION: string;
 };

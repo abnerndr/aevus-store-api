@@ -1,3 +1,13 @@
 {
-  "cSpell.words": ["nestjs", "paralleldrive", "postgres", "postgresql", "Ruperth"]
+  "cSpell.words": [
+    "datasource",
+    "MIYOTA",
+    "nestjs",
+    "paralleldrive",
+    "postgres",
+    "postgresql",
+    "Ruperth",
+    "Uuid"
+  ],
+  "prisma.prismaFmtBinPath": "./node_modules/.bin/prisma"
 }

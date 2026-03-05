@@ -22,8 +22,8 @@ async function bootstrap() {
     }),
   );
   const fastifyInstance = app.getHttpAdapter().getInstance();
-  await fastifyInstance.register(multipart, FilesConfig.multipart());
-  await fastifyInstance.register(cors, CorsConfig.cors());
+  await fastifyInstance.register(multipart as any, FilesConfig.multipart());
+  await fastifyInstance.register(cors as any, CorsConfig.cors());
   const swaggerConfig = new SwaggerConfig();
   swaggerConfig.setup(app, '/docs');
   await app.listen(CONFIG.PORT, '0.0.0.0');

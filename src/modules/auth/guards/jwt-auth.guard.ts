@@ -26,10 +26,11 @@ export class JwtAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const handler = context.getHandler();
+    const controllerClass = context.getClass();
+    const isPublic =
+      this.reflector.get<boolean>(IS_PUBLIC_KEY, handler) ??
+      this.reflector.get<boolean>(IS_PUBLIC_KEY, controllerClass);
 
     if (isPublic) {
       return true;
@@ -63,9 +64,9 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('Usuário não verificado');
       }
 
-      const roles = user.roles.map((role) => role.name);
-      const permissions = user.roles.flatMap((role) =>
-        role.permissions.map((permission) => `${permission.resource}:${permission.action}`),
+      const roles = (user.roles || []).map((role) => role.name);
+      const permissions = (user.roles || []).flatMap((role) =>
+        (role.permissions || []).map((permission) => `${permission.resource}:${permission.action}`),
       );
 
       // Adicionar informações do usuário à request

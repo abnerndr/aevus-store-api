@@ -26,12 +26,6 @@ export class UserResponseDTO {
   })
   avatar?: string;
 
-  @ApiPropertyOptional({
-    description: 'Google ID para login social',
-    example: '1234567890',
-  })
-  googleId?: string;
-
   @ApiProperty({
     description: 'Se o usuário está verificado',
     example: true,

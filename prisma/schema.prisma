@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                   String    @id @db.Uuid
+  code                 String    @unique
+  email                String    @unique
+  password             String?
+  name                 String?
+  avatar               String?
+  isVerified           Boolean   @default(false) @map("is_verified")
+  verificationToken    String?   @map("verification_token")
+  resetPasswordToken   String?   @map("reset_password_token")
+  resetPasswordExpires DateTime? @map("reset_password_expires")
+  magicLinkToken       String?   @map("magic_link_token")
+  magicLinkExpires     DateTime? @map("magic_link_expires")
+  refreshToken         String?   @map("refresh_token")
+  roles                Role[]    @relation("UserRoles")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Role {
+  id          String       @id @db.Uuid
+  name        String       @unique
+  description String?
+  users       User[]       @relation("UserRoles")
+  permissions Permission[] @relation("RolePermissions")
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String  @id @db.Uuid
+  name        String  @unique
+  description String?
+  resource    String
+  action      String
+  roles       Role[]  @relation("RolePermissions")
+
+  @@map("permissions")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum WatchType {
+  AAA_PLUS
+  SUPER_CLONE
+}
+
+enum Movement {
+  MIYOTA
+  CITIZEN
+  BASE_ETA
+  ETA
+}
+
+enum UseCase {
+  FORMAL
+  CASUAL
+  SPORT
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model Product {
+  id          String        @id @db.Uuid
+  name        String
+  model       String
+  status      ProductStatus @default(DRAFT)
+  description String?
+  price       Decimal
+  stock       Int
+  images      String[]
+
+  // Watch specs
+  watchType       WatchType @map("watch_type")
+  caseMaterial    String    @map("case_material")
+  caseDiameter    String    @map("case_diameter")
+  crystalMaterial String    @map("crystal_material")
+  strapMaterial   String    @map("strap_material")
+  movement        Movement
+  useCase         UseCase   @map("use_case")
+
+  // Highlights
+  isFeatured         Boolean @default(false) @map("is_featured")
+  isNew              Boolean @default(false) @map("is_new")
+  isBestSeller       Boolean @default(false) @map("is_best_seller")
+  isTopRated         Boolean @default(false) @map("is_top_rated")
+  isDiscounted       Boolean @default(false) @map("is_discounted")
+  discountPercentage Int?    @map("discount_percentage")
+
+  tags String[]
+
+  // Relations
+  brand          Brand           @relation(fields: [brandId], references: [id])
+  brandId        String          @map("brand_id") @db.Uuid
+  categories     Category[]      @relation("ProductCategories")
+  features       Feature[]       @relation("ProductFeatures")
+  specifications Specification[] @relation("ProductSpecifications")
+  factories      Factory[]       @relation("ProductFactories")
+  suppliers      Supplier[]      @relation("ProductSuppliers")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("products")
+}
+
+model Category {
+  id          String    @id @db.Uuid
+  name        String
+  description String?
+  products    Product[] @relation("ProductCategories")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
+model Brand {
+  id          String    @id @db.Uuid
+  name        String
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("brands")
+}
+
+model Feature {
+  id          String    @id @db.Uuid
+  name        String
+  description String?
+  products    Product[] @relation("ProductFeatures")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("features")
+}
+
+model Specification {
+  id          String    @id @db.Uuid
+  name        String
+  description String?
+  products    Product[] @relation("ProductSpecifications")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("specifications")
+}
+
+model Factory {
+  id          String    @id @db.Uuid
+  name        String
+  description String?
+  products    Product[] @relation("ProductFactories")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("factories")
+}
+
+model Supplier {
+  id          String    @id @db.Uuid
+  name        String
+  description String?
+  products    Product[] @relation("ProductSuppliers")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("suppliers")
+}
