@@ -7,13 +7,14 @@ RUN npm install -g pnpm
 # Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos de dependências
-COPY package.json pnpm-lock.yaml ./
+# Copiar arquivos de dependências e schema Prisma (necessário para postinstall)
+COPY package.json pnpm-lock.yaml prisma.config.ts ./
+COPY prisma ./prisma
 
-# Instalar dependências (apenas produção no final, mas todas para build)
+# Instalar dependências (postinstall executa prisma generate)
 RUN pnpm install --frozen-lockfile
 
-# Copiar código fonte
+# Copiar resto do código fonte
 COPY . .
 
 # Build da aplicação
@@ -35,12 +36,15 @@ WORKDIR /app
 # Copiar arquivos de dependências
 COPY package.json pnpm-lock.yaml ./
 
-# Instalar apenas dependências de produção
-RUN pnpm install --prod --frozen-lockfile && \
+# Instalar apenas dependências de produção (ignorar postinstall que precisa do prisma CLI)
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts && \
     pnpm store prune
 
 # Copiar arquivos compilados do stage de build
 COPY --from=builder /app/dist ./dist
+
+# Copiar Prisma Client gerado no stage de build (prisma generate roda no builder)
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Garantir que usamos o package.json correto do root (não o do dist que tem script antigo)
 COPY --from=builder /app/package.json ./package.json
