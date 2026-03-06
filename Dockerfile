@@ -35,21 +35,18 @@ RUN addgroup -g 1001 -S nodejs && \
 # Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos de dependências
-COPY package.json pnpm-lock.yaml ./
+# Copiar arquivos de dependências e schema Prisma
+COPY package.json pnpm-lock.yaml prisma.config.ts ./
+COPY prisma ./prisma
 
-# Instalar apenas dependências de produção (ignorar postinstall que precisa do prisma CLI)
+# Instalar deps de produção e gerar Prisma Client (pnpm usa symlinks, .prisma não existe no builder)
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts && \
+    pnpm add -D prisma && \
+    DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" pnpm prisma generate && \
     pnpm store prune
 
 # Copiar arquivos compilados do stage de build
 COPY --from=builder /app/dist ./dist
-
-# Copiar Prisma Client gerado no stage de build (prisma generate roda no builder)
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-
-# Garantir que usamos o package.json correto do root (não o do dist que tem script antigo)
-COPY --from=builder /app/package.json ./package.json
 
 # Mudar ownership para usuário não-root
 RUN chown -R nestjs:nodejs /app
