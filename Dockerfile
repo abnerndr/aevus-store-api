@@ -12,7 +12,9 @@ COPY package.json pnpm-lock.yaml prisma.config.ts ./
 COPY prisma ./prisma
 
 # Instalar dependências (postinstall executa prisma generate)
-RUN pnpm install --frozen-lockfile
+# DATABASE_URL placeholder - prisma generate não conecta ao DB
+RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" \
+    pnpm install --frozen-lockfile
 
 # Copiar resto do código fonte
 COPY . .
