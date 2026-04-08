@@ -74,17 +74,51 @@ enum UseCase {
   SPORT
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum OrderStatus {
+  REALIZADO
+  PAGO
+  AGUARDANDO_ENVIO
+  ENVIADO
+  ENTREGUE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELED
+  REFUNDED
+}
+
+enum CaptureMethod {
+  PIX
+  CREDIT_CARD
+  UNKNOWN
+}
+
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model Product {
-  id          String        @id @db.Uuid
-  name        String
-  model       String
-  status      ProductStatus @default(DRAFT)
-  description String?
-  price       Decimal
-  stock       Int
-  images      String[]
+  id                     String        @id @db.Uuid
+  name                   String
+  model                  String
+  status                 ProductStatus @default(DRAFT)
+  description            String?
+  price                  Decimal
+  cashPrice              Decimal?      @map("cash_price")
+  stock                  Int
+  images                 String[]
+  purchaseNotes          String?       @map("purchase_notes")
+  averageRating          Decimal?      @map("average_rating")
+  reviewCount            Int           @default(0) @map("review_count")
+  infinitePayId          String?       @map("infinitepay_id")
+  infinitePayHandle      String?       @map("infinitepay_handle")
+  infinitePayDescription String?       @map("infinitepay_description")
 
   // Watch specs
   watchType       WatchType @map("watch_type")
@@ -106,13 +140,18 @@ model Product {
   tags String[]
 
   // Relations
-  brand          Brand           @relation(fields: [brandId], references: [id])
-  brandId        String          @map("brand_id") @db.Uuid
-  categories     Category[]      @relation("ProductCategories")
-  features       Feature[]       @relation("ProductFeatures")
-  specifications Specification[] @relation("ProductSpecifications")
-  factories      Factory[]       @relation("ProductFactories")
-  suppliers      Supplier[]      @relation("ProductSuppliers")
+  brand              Brand                      @relation(fields: [brandId], references: [id])
+  brandId            String                     @map("brand_id") @db.Uuid
+  categories         Category[]                 @relation("ProductCategories")
+  features           Feature[]                  @relation("ProductFeatures")
+  specifications     Specification[]            @relation("ProductSpecifications")
+  factories          Factory[]                  @relation("ProductFactories")
+  suppliers          Supplier[]                 @relation("ProductSuppliers")
+  optionalItems      ProductOptionalItem[]
+  installmentOptions ProductInstallmentOption[]
+  reviews            ProductReview[]
+  promotions         Promotion[]                @relation("PromotionProducts")
+  orderItems         OrderItem[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -184,4 +223,193 @@ model Supplier {
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("suppliers")
+}
+
+model ProductOptionalItem {
+  id          String   @id @db.Uuid
+  title       String
+  description String?
+  price       Decimal
+  oldPrice    Decimal? @map("old_price")
+  image       String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String   @map("product_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("product_optional_items")
+}
+
+model ProductInstallmentOption {
+  id                String   @id @db.Uuid
+  label             String?
+  installments      Int
+  installmentAmount Decimal  @map("installment_amount")
+  totalAmount       Decimal  @map("total_amount")
+  feePercentage     Decimal? @map("fee_percentage")
+  sortOrder         Int      @default(0) @map("sort_order")
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId         String   @map("product_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("product_installment_options")
+}
+
+model ProductReview {
+  id         String   @id @db.Uuid
+  authorName String   @map("author_name")
+  rating     Int
+  title      String?
+  comment    String?
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId  String   @map("product_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("product_reviews")
+}
+
+model Promotion {
+  id          String       @id @db.Uuid
+  name        String
+  description String?
+  type        DiscountType
+  value       Decimal
+  isActive    Boolean      @default(true) @map("is_active")
+  startsAt    DateTime?    @map("starts_at")
+  endsAt      DateTime?    @map("ends_at")
+  products    Product[]    @relation("PromotionProducts")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@map("promotions")
+}
+
+model Coupon {
+  id                 String       @id @db.Uuid
+  code               String       @unique
+  description        String?
+  type               DiscountType
+  value              Decimal
+  minimumOrderAmount Decimal?     @map("minimum_order_amount")
+  maxUses            Int?         @map("max_uses")
+  usedCount          Int          @default(0) @map("used_count")
+  isActive           Boolean      @default(true) @map("is_active")
+  startsAt           DateTime?    @map("starts_at")
+  endsAt             DateTime?    @map("ends_at")
+  orders             Order[]
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+
+  @@map("coupons")
+}
+
+model Customer {
+  id           String   @id @db.Uuid
+  fullName     String   @map("full_name")
+  email        String   @unique
+  phone        String
+  cpf          String   @unique
+  postalCode   String   @map("postal_code")
+  street       String
+  neighborhood String
+  number       String
+  complement   String?
+  city         String
+  state        String
+  fullAddress  String   @map("full_address")
+  orders       Order[]
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("customers")
+}
+
+model Order {
+  id                        String        @id @db.Uuid
+  orderNumber               String        @unique @map("order_number")
+  orderNsu                  String        @unique @map("order_nsu")
+  status                    OrderStatus   @default(REALIZADO)
+  paymentStatus             PaymentStatus @default(PENDING) @map("payment_status")
+  captureMethod             CaptureMethod @default(UNKNOWN) @map("capture_method")
+  infinitePayHandle         String?       @map("infinitepay_handle")
+  infinitePayInvoiceSlug    String?       @map("infinitepay_invoice_slug")
+  infinitePayTransactionNsu String?       @map("infinitepay_transaction_nsu")
+  infinitePayCheckoutUrl    String?       @map("infinitepay_checkout_url")
+  infinitePayReceiptUrl     String?       @map("infinitepay_receipt_url")
+  subtotal                  Decimal
+  promotionDiscount         Decimal       @default(0) @map("promotion_discount")
+  couponDiscount            Decimal       @default(0) @map("coupon_discount")
+  shippingAmount            Decimal       @default(0) @map("shipping_amount")
+  total                     Decimal
+  paidAmount                Decimal?      @map("paid_amount")
+  installments              Int?
+  notes                     String?
+  customerName              String        @map("customer_name")
+  customerEmail             String        @map("customer_email")
+  customerPhone             String        @map("customer_phone")
+  customerCpf               String        @map("customer_cpf")
+  postalCode                String        @map("postal_code")
+  street                    String
+  neighborhood              String
+  number                    String
+  complement                String?
+  city                      String
+  state                     String
+  fullAddress               String        @map("full_address")
+  lastWebhookPayload        Json?         @map("last_webhook_payload")
+  paidAt                    DateTime?     @map("paid_at")
+  customer                  Customer      @relation(fields: [customerId], references: [id])
+  customerId                String        @map("customer_id") @db.Uuid
+  coupon                    Coupon?       @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  couponId                  String?       @map("coupon_id") @db.Uuid
+  items                     OrderItem[]
+  createdAt                 DateTime      @default(now()) @map("created_at")
+  updatedAt                 DateTime      @updatedAt @map("updated_at")
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id                   String                  @id @db.Uuid
+  productName          String                  @map("product_name")
+  productModel         String?                 @map("product_model")
+  description          String?
+  image                String?
+  quantity             Int
+  unitPrice            Decimal                 @map("unit_price")
+  cashPrice            Decimal?                @map("cash_price")
+  subtotal             Decimal
+  promotionDiscount    Decimal                 @default(0) @map("promotion_discount")
+  total                Decimal
+  appliedPromotionName String?                 @map("applied_promotion_name")
+  order                Order                   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId              String                  @map("order_id") @db.Uuid
+  product              Product?                @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId            String?                 @map("product_id") @db.Uuid
+  optionalItems        OrderItemOptionalItem[]
+  createdAt            DateTime                @default(now()) @map("created_at")
+  updatedAt            DateTime                @updatedAt @map("updated_at")
+
+  @@map("order_items")
+}
+
+model OrderItemOptionalItem {
+  id                   String    @id @db.Uuid
+  sourceOptionalItemId String?   @map("source_optional_item_id") @db.Uuid
+  title                String
+  description          String?
+  image                String?
+  quantity             Int
+  unitPrice            Decimal   @map("unit_price")
+  oldPrice             Decimal?  @map("old_price")
+  total                Decimal
+  orderItem            OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  orderItemId          String    @map("order_item_id") @db.Uuid
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  @@map("order_item_optional_items")
 }

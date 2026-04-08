@@ -11,6 +11,7 @@ export type AppConfigProps = {
   ADMIN: AdminConfig;
   CLOUDFLARE_R2: CloudflareR2Config;
   STRIPE: StripeConfig;
+  INFINITEPAY: InfinitePayConfig;
 };
 
 type MailConfig = {
@@ -43,4 +44,11 @@ type StripeConfig = {
   SECRET_KEY: string;
   WEBHOOK_SECRET: string;
   API_VERSION: string;
+};
+
+type InfinitePayConfig = {
+  API_URL: string;
+  HANDLE: string;
+  REDIRECT_URL: string;
+  WEBHOOK_URL: string;
 };

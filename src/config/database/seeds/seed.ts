@@ -23,4 +23,4 @@ async function runSeeds() {
   }
 }
 
-runSeeds();
+void runSeeds();

@@ -81,3 +81,23 @@ export const ReadSuppliers = () => CheckAbilities({ action: Action.READ, subject
 export const CreateSuppliers = () => CheckAbilities({ action: Action.CREATE, subject: Resource.SUPPLIER });
 export const UpdateSuppliers = () => CheckAbilities({ action: Action.UPDATE, subject: Resource.SUPPLIER });
 export const DeleteSuppliers = () => CheckAbilities({ action: Action.DELETE, subject: Resource.SUPPLIER });
+
+export const ReadCustomers = () => CheckAbilities({ action: Action.READ, subject: Resource.CUSTOMER });
+export const CreateCustomers = () => CheckAbilities({ action: Action.CREATE, subject: Resource.CUSTOMER });
+export const UpdateCustomers = () => CheckAbilities({ action: Action.UPDATE, subject: Resource.CUSTOMER });
+export const DeleteCustomers = () => CheckAbilities({ action: Action.DELETE, subject: Resource.CUSTOMER });
+
+export const ReadOrders = () => CheckAbilities({ action: Action.READ, subject: Resource.ORDER });
+export const CreateOrders = () => CheckAbilities({ action: Action.CREATE, subject: Resource.ORDER });
+export const UpdateOrders = () => CheckAbilities({ action: Action.UPDATE, subject: Resource.ORDER });
+export const DeleteOrders = () => CheckAbilities({ action: Action.DELETE, subject: Resource.ORDER });
+
+export const ReadCoupons = () => CheckAbilities({ action: Action.READ, subject: Resource.COUPON });
+export const CreateCoupons = () => CheckAbilities({ action: Action.CREATE, subject: Resource.COUPON });
+export const UpdateCoupons = () => CheckAbilities({ action: Action.UPDATE, subject: Resource.COUPON });
+export const DeleteCoupons = () => CheckAbilities({ action: Action.DELETE, subject: Resource.COUPON });
+
+export const ReadPromotions = () => CheckAbilities({ action: Action.READ, subject: Resource.PROMOTION });
+export const CreatePromotions = () => CheckAbilities({ action: Action.CREATE, subject: Resource.PROMOTION });
+export const UpdatePromotions = () => CheckAbilities({ action: Action.UPDATE, subject: Resource.PROMOTION });
+export const DeletePromotions = () => CheckAbilities({ action: Action.DELETE, subject: Resource.PROMOTION });

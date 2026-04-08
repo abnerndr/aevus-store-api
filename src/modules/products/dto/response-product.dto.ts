@@ -9,6 +9,33 @@ class RelationItemDTO {
 
 class BrandItemDTO extends RelationItemDTO {}
 
+class ProductOptionalItemResponseDTO {
+  @ApiProperty() id: string;
+  @ApiProperty() title: string;
+  @ApiPropertyOptional() description?: string;
+  @ApiProperty() price: number;
+  @ApiPropertyOptional() oldPrice?: number;
+  @ApiPropertyOptional() image?: string;
+}
+
+class ProductInstallmentOptionResponseDTO {
+  @ApiProperty() id: string;
+  @ApiPropertyOptional() label?: string;
+  @ApiProperty() installments: number;
+  @ApiProperty() installmentAmount: number;
+  @ApiProperty() totalAmount: number;
+  @ApiPropertyOptional() feePercentage?: number;
+}
+
+class ProductReviewResponseDTO {
+  @ApiProperty() id: string;
+  @ApiProperty() authorName: string;
+  @ApiProperty() rating: number;
+  @ApiPropertyOptional() title?: string;
+  @ApiPropertyOptional() comment?: string;
+  @ApiProperty() createdAt: Date;
+}
+
 export class ProductResponseDTO {
   @ApiProperty() id: string;
   @ApiProperty() name: string;
@@ -16,6 +43,7 @@ export class ProductResponseDTO {
   @ApiProperty({ enum: ProductStatus }) status: ProductStatus;
   @ApiPropertyOptional() description?: string;
   @ApiProperty() price: number;
+  @ApiPropertyOptional() cashPrice?: number;
   @ApiProperty() stock: number;
   @ApiProperty({ type: [String] }) images: string[];
   @ApiProperty({ type: [String] }) tags: string[];
@@ -36,6 +64,15 @@ export class ProductResponseDTO {
   @ApiProperty() isTopRated: boolean;
   @ApiProperty() isDiscounted: boolean;
   @ApiPropertyOptional() discountPercentage?: number;
+  @ApiPropertyOptional() purchaseNotes?: string;
+  @ApiPropertyOptional() averageRating?: number;
+  @ApiProperty() reviewCount: number;
+  @ApiPropertyOptional() infinitePayId?: string;
+  @ApiPropertyOptional() infinitePayHandle?: string;
+  @ApiPropertyOptional() infinitePayDescription?: string;
+  @ApiProperty({ type: [ProductOptionalItemResponseDTO] }) optionalItems: ProductOptionalItemResponseDTO[];
+  @ApiProperty({ type: [ProductInstallmentOptionResponseDTO] }) installmentOptions: ProductInstallmentOptionResponseDTO[];
+  @ApiProperty({ type: [ProductReviewResponseDTO] }) reviews: ProductReviewResponseDTO[];
 
   // Relations
   @ApiProperty({ type: BrandItemDTO }) brand: BrandItemDTO;

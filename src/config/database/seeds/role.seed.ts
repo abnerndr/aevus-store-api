@@ -101,6 +101,102 @@ const permissions = [
     action: Action.MANAGE,
     description: 'Full system access',
   },
+  {
+    name: 'customers:create',
+    resource: Resource.CUSTOMER,
+    action: Action.CREATE,
+    description: 'Create customers',
+  },
+  {
+    name: 'customers:read',
+    resource: Resource.CUSTOMER,
+    action: Action.READ,
+    description: 'View customers',
+  },
+  {
+    name: 'customers:update',
+    resource: Resource.CUSTOMER,
+    action: Action.UPDATE,
+    description: 'Update customers',
+  },
+  {
+    name: 'customers:delete',
+    resource: Resource.CUSTOMER,
+    action: Action.DELETE,
+    description: 'Delete customers',
+  },
+  {
+    name: 'orders:create',
+    resource: Resource.ORDER,
+    action: Action.CREATE,
+    description: 'Create orders',
+  },
+  {
+    name: 'orders:read',
+    resource: Resource.ORDER,
+    action: Action.READ,
+    description: 'View orders',
+  },
+  {
+    name: 'orders:update',
+    resource: Resource.ORDER,
+    action: Action.UPDATE,
+    description: 'Update orders',
+  },
+  {
+    name: 'orders:delete',
+    resource: Resource.ORDER,
+    action: Action.DELETE,
+    description: 'Delete orders',
+  },
+  {
+    name: 'coupons:create',
+    resource: Resource.COUPON,
+    action: Action.CREATE,
+    description: 'Create coupons',
+  },
+  {
+    name: 'coupons:read',
+    resource: Resource.COUPON,
+    action: Action.READ,
+    description: 'View coupons',
+  },
+  {
+    name: 'coupons:update',
+    resource: Resource.COUPON,
+    action: Action.UPDATE,
+    description: 'Update coupons',
+  },
+  {
+    name: 'coupons:delete',
+    resource: Resource.COUPON,
+    action: Action.DELETE,
+    description: 'Delete coupons',
+  },
+  {
+    name: 'promotions:create',
+    resource: Resource.PROMOTION,
+    action: Action.CREATE,
+    description: 'Create promotions',
+  },
+  {
+    name: 'promotions:read',
+    resource: Resource.PROMOTION,
+    action: Action.READ,
+    description: 'View promotions',
+  },
+  {
+    name: 'promotions:update',
+    resource: Resource.PROMOTION,
+    action: Action.UPDATE,
+    description: 'Update promotions',
+  },
+  {
+    name: 'promotions:delete',
+    resource: Resource.PROMOTION,
+    action: Action.DELETE,
+    description: 'Delete promotions',
+  },
 ];
 
 export async function seedRolesAndPermissions(prisma: PrismaClient) {

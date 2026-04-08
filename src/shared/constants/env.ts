@@ -1,7 +1,6 @@
 import 'dotenv/config';
-import { description, name, version } from 'package.json';
-
-import { AppConfigProps } from 'src/shared/types/env';
+import { description, name, version } from '../../../package.json';
+import { AppConfigProps } from '../types/env';
 
 const APP_NAME = typeof name === 'string' ? name : 'Nest Fastify Base';
 const APP_DESCRIPTION = typeof description === 'string' ? description : 'Nest Fastify Base API';
@@ -41,5 +40,11 @@ export const CONFIG: AppConfigProps = {
     SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
     WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
     API_VERSION: process.env.STRIPE_API_VERSION || '',
+  },
+  INFINITEPAY: {
+    API_URL: process.env.INFINITEPAY_API_URL || 'https://api.infinitepay.io',
+    HANDLE: process.env.INFINITEPAY_HANDLE || '',
+    REDIRECT_URL: process.env.INFINITEPAY_REDIRECT_URL || '',
+    WEBHOOK_URL: process.env.INFINITEPAY_WEBHOOK_URL || '',
   },
 };

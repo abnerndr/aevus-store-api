@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+ 
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import Stripe from 'stripe';
 import { CONFIG } from '../../shared/constants/env';

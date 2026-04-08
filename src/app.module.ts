@@ -13,6 +13,10 @@ import { ProductsModule } from './modules/products/products.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { UsersModule } from './modules/users/users.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { CustomersModule } from './modules/customers/customers.module';
+import { CouponsModule } from './modules/coupons/coupons.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
   imports: [
@@ -29,6 +33,10 @@ import { UploadsModule } from './modules/uploads/uploads.module';
     FactoriesModule,
     SuppliersModule,
     ProductsModule,
+    CustomersModule,
+    CouponsModule,
+    PromotionsModule,
+    OrdersModule,
     UploadsModule,
   ],
 })

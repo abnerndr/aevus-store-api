@@ -17,5 +17,9 @@ export enum Resource {
   SPECIFICATION = 'Specification',
   FACTORY = 'Factory',
   SUPPLIER = 'Supplier',
+  CUSTOMER = 'Customer',
+  ORDER = 'Order',
+  COUPON = 'Coupon',
+  PROMOTION = 'Promotion',
   ALL = 'all',
 }
